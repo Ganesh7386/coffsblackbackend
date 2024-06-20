@@ -16,7 +16,7 @@ const connectToMongoCluster = async ()=> {
     try {
     await connectToCluster();
     console.log("connected to mongo cluster");
-    // console.log(client);
+    console.log("conencted to mongodb cluster");
 
     } catch(e) {
         console.log(e.message);
