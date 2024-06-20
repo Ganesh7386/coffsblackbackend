@@ -5,6 +5,7 @@ dotenv.config();
 
 
 const url = process.env.MONGO_DB_URL;
+console.log(url);
 
 
 const client = new MongoClient(url , {
@@ -23,7 +24,7 @@ const connectToCluster = async ()=> {
     }
 }
 
-// connectToCluster();
+connectToCluster();
 
 
 module.exports = {client , connectToCluster};
