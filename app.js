@@ -24,6 +24,8 @@ const connectToMongoCluster = async ()=> {
 }
 
 connectToMongoCluster();
+const company_database = await client.db('company_database');
+const all_data_collection = await company_database.collection('all_data');
 
 
 app.get("/" , (req , res)=> {
@@ -33,8 +35,6 @@ app.get("/" , (req , res)=> {
 
 
 app.get("/sales/" , async (req , res)=> {
-    const company_database = await client.db('company_database');
-    const all_data_collection = await company_database.collection('all_data');
     const foundObj = await all_data_collection.findOne({name : "bharath"});
     console.log(foundObj);
 
@@ -43,12 +43,7 @@ app.get("/sales/" , async (req , res)=> {
 
 
 app.post("/insertInfo/" , async (req , res)=> {
-
     // const {name  , age} = req.body;
-    console.log(req.body);
-
-    const company_database = await client.db('company_database');
-    const all_data_collection = await company_database.collection('all_data');
     const insertingId = await all_data_collection.insertOne(req.body);
     console.log(insertingId);
 
@@ -60,13 +55,33 @@ app.post("/insertManyInfos/" , async (req , res)=> {
 
     // const {name  , age} = req.body;
     console.log(req.body);
-
-    const company_database = await client.db('company_database');
-    const all_data_collection = await company_database.collection('all_data');
     const insertingId = await all_data_collection.insertMany(req.body);
     console.log(insertingId);
 
     res.json(insertingId);
+})
+
+
+app.get("/eachsectorcount" , async(req , res)=> {
+    let ok;
+    let data;
+    let stat;
+
+
+    try {
+    const documentsWithGivenSector = await all_data_collection.find({sector : "Energy"}).toArray();
+    // console.log(documentsWithGivenSector);
+    data = documentsWithGivenSector;
+    ok = true;
+    stat = 200;
+    } catch(e) {
+        console.log(e.message);
+        ok = false;
+        data = "error occured during retrieving";
+        stat = 401;
+    }
+    console.log({ok , data});
+    res.status(stat).json({ok , data});
 })
 
 
