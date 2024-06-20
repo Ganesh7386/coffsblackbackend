@@ -34,7 +34,7 @@ app.get("/" , (req , res)=> {
 
 
 app.get("/sales" , async (req , res)=> {
-    const company_database = await client.db('transport');
+    const company_database = await client.db('company_database');
     const all_data_collection = await company_database.collection('all_data');
     const got_data = await all_data_collection.findOne({end_year : 2027});
     console.log(got_data);
