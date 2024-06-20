@@ -1,6 +1,5 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const dotenv = require("dotenv");
-const { urlencoded } = require('express');
 dotenv.config();
 
 
@@ -24,7 +23,7 @@ const connectToCluster = async ()=> {
     }
 }
 
-connectToCluster();
+// connectToCluster();
 
 
 module.exports = {client , connectToCluster};

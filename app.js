@@ -33,13 +33,27 @@ app.get("/" , (req , res)=> {
 })
 
 
-app.get("/sales" , async (req , res)=> {
+app.get("/sales/" , async (req , res)=> {
     const company_database = await client.db('company_database');
     const all_data_collection = await company_database.collection('all_data');
-    const got_data = await all_data_collection.findOne({end_year : 2027});
-    console.log(got_data);
+    const foundObj = await all_data_collection.findOne({name : "bharath"});
+    console.log(foundObj);
 
-    res.json(got_data);
+    res.json(foundObj);
+})
+
+
+app.post("/insert/" , async (req , res)=> {
+
+    // const {name  , age} = req.body;
+    console.log(req.body);
+
+    const company_database = await client.db('company_database');
+    const all_data_collection = await company_database.collection('all_data');
+    const insertingId = await all_data_collection.insertOne(req.body);
+    console.log(insertingId);
+
+    res.json(insertingId);
 })
 
 
