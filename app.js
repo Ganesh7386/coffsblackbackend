@@ -82,13 +82,13 @@ app.get("/eachsectorcount/" , async(req , res)=> {
     let data;
     let stat;
 
-
     try {
-    const documentsWithGivenSector = await all_data_collection.find({sector : "Energy"}).toArray();
+        const pipeline = [{$match : {sector : {$ne : ''}}},{$group : {_id : '$sector' , totalCount : {$sum : 1}}} , {$project : {_id : 0 , sector : '$_id' , totalCount :'$totalCount' }}];
+        const documentsWithGivenSector = await all_data_collection.aggregate(pipeline).toArray();
     // console.log(documentsWithGivenSector);
-    data = documentsWithGivenSector;
-    ok = true;
-    stat = 200;
+        data = documentsWithGivenSector;
+        ok = true;
+        stat = 200;
     } catch(e) {
         console.log(e.message);
         ok = false;
