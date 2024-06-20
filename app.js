@@ -23,9 +23,24 @@ const connectToMongoCluster = async ()=> {
     
 }
 
+let company_database;
+let all_data_collection;
+
 connectToMongoCluster();
-const company_database = await client.db('company_database');
-const all_data_collection = await company_database.collection('all_data');
+
+const getCollectionsDatabase = async ()=> {
+    try {
+    company_database = await client.db('company_database');
+    all_data_collection = await company_database.collection('all_data');
+    console.log('got database , collection successfully');
+    }
+    catch(e) {
+        console.log(e.message);
+        console.log("error occured during getting database , collection");
+    }
+}
+
+getCollectionsDatabase();
 
 
 app.get("/" , (req , res)=> {
