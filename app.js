@@ -42,7 +42,7 @@ app.get("/sales/" , async (req , res)=> {
 })
 
 
-app.post("/insert/" , async (req , res)=> {
+app.post("/insertInfo/" , async (req , res)=> {
 
     // const {name  , age} = req.body;
     console.log(req.body);
@@ -50,6 +50,20 @@ app.post("/insert/" , async (req , res)=> {
     const company_database = await client.db('company_database');
     const all_data_collection = await company_database.collection('all_data');
     const insertingId = await all_data_collection.insertOne(req.body);
+    console.log(insertingId);
+
+    res.json(insertingId);
+})
+
+
+app.post("/insertManyInfos/" , async (req , res)=> {
+
+    // const {name  , age} = req.body;
+    console.log(req.body);
+
+    const company_database = await client.db('company_database');
+    const all_data_collection = await company_database.collection('all_data');
+    const insertingId = await all_data_collection.insertMany(req.body);
     console.log(insertingId);
 
     res.json(insertingId);
