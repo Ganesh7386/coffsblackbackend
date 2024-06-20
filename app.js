@@ -62,7 +62,7 @@ app.post("/insertManyInfos/" , async (req , res)=> {
 })
 
 
-app.get("/eachsectorcount" , async(req , res)=> {
+app.get("/eachsectorcount/" , async(req , res)=> {
     let ok;
     let data;
     let stat;
