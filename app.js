@@ -99,6 +99,83 @@ app.get("/eachsectorcount/" , async(req , res)=> {
     res.status(stat).json({ok , data});
 })
 
+app.post("/storeeachsectorvscount/" , async (req , res)=> {
+    try {
+    console.log(req.body);
+    const sectorVsCountCollection = await company_database.collection('sectorvscount');
+    const previousDocs = await sectorVsCountCollection.find({}).toArray();
+    console.log("no previous docs");
+    console.log("inserting given doc");
+    if(Array.isArray(req.body)) {
+        const insertingId = await sectorVsCountCollection.insertMany(req.body);
+        console.log(insertingId);
+    }
+    else {
+        console.log("came is object");
+        const insertingId = await sectorVsCountCollection.insertOne(req.body);
+        console.log(insertingId);
+    }
+
+    res.status(200).json({ok : true , data : "data inserted"});
+    }
+    catch(e) {
+        console.log(e.message);
+        res.status(404).json({ok : false , data : e.message});
+    }
+})
+
+app.get("/pestlevslistofsectors/" , async (req , res)=> {
+
+    try {
+    const pipeline = [{$match : {sector : {$ne : ''},pestle : {$ne : ''} }} ,{ $group: { _id: '$pestle', sectors: { $addToSet: '$sector' } } }, { $project: { _id: 0, pestle: '$_id', sectors: 1 } }];
+    const dataOfPestleVsListofsectors = await all_data_collection.aggregate(pipeline).toArray();
+    console.log(dataOfPestleVsListofsectors);
+    res.status(200).json({ok : true , data : dataOfPestleVsListofsectors})
+    } catch(e) {
+        console.log(e.message);
+        res.status(501).json({ok : false , data : "error occured while querying"});
+    }
+
+})
+
+
+app.get("/pestle-vs-avgrelevance-in-given-end-year/:endYear/" , async (req , res)=> {
+    const {endYear} = req.params;
+    console.log(typeof(parseInt(endYear , 10)));
+    console.log(endYear)
+    // res.send("query sent");
+    try {
+        const pipeline = [{ $match: { end_year: { $ne: '' }, pestle: { $ne: '' } } }, { $match: { end_year: parseInt(endYear) } }, { $group: { _id: '$pestle', averageRelevance: { $avg: '$relevance' } , averageIntensity : {$avg : '$intensity'} } }, { $project: { _id: 0, pestle: '$_id', averageRelevance: { $round: ['$averageRelevance', 1] } , averageIntensity : {$round : ['$averageIntensity' , 1]} } }];
+        const pestleVsAvgRelevanceWithGivenYearData = await all_data_collection.aggregate(pipeline).toArray();
+        console.log(pestleVsAvgRelevanceWithGivenYearData);
+        res.status(200).json({ok : true , data : pestleVsAvgRelevanceWithGivenYearData});
+    }
+    catch(e) {
+        console.log(e.message);
+        res.status(500).json({ok : false ,data : "Internal query processing error occured"});
+    }
+})
+
+// app.get("/pestlesyear/:year/" , async (req , res)=> {
+//     const {year} = req.params;
+//     console.log(typeof(parseInt(year , 10)));
+//     console.log(year)
+//     // res.send("query sent");
+//     try {
+//         const pipeline = [{$match : {end_year : parseInt(year)}}];
+//         const pestleVsAvgRelevanceWithGivenYearData = await all_data_collection.aggregate(pipeline).toArray();
+//         console.log(pestleVsAvgRelevanceWithGivenYearData);
+//         res.status(200).json({ok : true , data : pestleVsAvgRelevanceWithGivenYearData});
+//     }
+//     catch(e) {
+//         console.log(e.message);
+//         res.status(500).json({ok : false ,data : "Internal query processing error occured"});
+//     }
+// })
+
+
+
+
 
 app.listen(port , ()=> {
     console.log(`connected to http://localhost:5001`);
