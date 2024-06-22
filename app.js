@@ -171,11 +171,12 @@ app.get("/pestle-vs-avgrelevance-in-given-end-year/:endYear/" , async (req , res
                       _id: 0, 
                       pestle: '$_id', 
                       averageRelevance: { $round: ['$averageRelevance', 1] },
-                  averageeIntensity : {$round : ['$averageIntensity' ,1]} 
+                  averageIntensity : {$round : ['$averageIntensity' ,1]} 
                     } 
                   }
                 ],
                 bySector: [
+                  {$match : {sector : {$ne : ''}}},  
                   { 
                     $group: { 
                       _id: '$sector', 
