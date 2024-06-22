@@ -145,7 +145,56 @@ app.get("/pestle-vs-avgrelevance-in-given-end-year/:endYear/" , async (req , res
     console.log(endYear)
     // res.send("query sent");
     try {
-        const pipeline = [{ $match: { end_year: { $ne: '' }, pestle: { $ne: '' } } }, { $match: { end_year: parseInt(endYear) } }, { $group: { _id: '$pestle', averageRelevance: { $avg: '$relevance' } , averageIntensity : {$avg : '$intensity'} } }, { $project: { _id: 0, pestle: '$_id', averageRelevance: { $round: ['$averageRelevance', 1] } , averageIntensity : {$round : ['$averageIntensity' , 1]} } }];
+        const pipeline = [
+            { 
+              $match: { 
+                end_year: { $ne: '' }, 
+                $or: [
+                  { pestle: { $ne: '' } },
+                  { sector: { $ne: '' } }
+                ]
+              } 
+            },
+            { $match: { end_year: parseInt(endYear) } },
+            { 
+              $facet: {
+                byPestle: [
+                  { 
+                    $group: { 
+                      _id: '$pestle', 
+                      averageRelevance: { $avg: '$relevance' },
+              averageIntensity : {$avg : '$intensity'}
+                    } 
+                  },
+                  { 
+                    $project: { 
+                      _id: 0, 
+                      pestle: '$_id', 
+                      averageRelevance: { $round: ['$averageRelevance', 1] },
+                  averageeIntensity : {$round : ['$averageIntensity' ,1]} 
+                    } 
+                  }
+                ],
+                bySector: [
+                  { 
+                    $group: { 
+                      _id: '$sector', 
+                      averageRelevance: { $avg: '$relevance' }, 
+                      averageIntensity: { $avg: '$intensity' } 
+                    } 
+                  },
+                  { 
+                    $project: { 
+                      _id: 0, 
+                      sector: '$_id', 
+                      averageRelevance: { $round: ['$averageRelevance', 1] }, 
+                      averageIntensity: { $round: ['$averageIntensity', 1] } 
+                    } 
+                  }
+                ]
+              }
+            }
+          ]
         const pestleVsAvgRelevanceWithGivenYearData = await all_data_collection.aggregate(pipeline).toArray();
         console.log(pestleVsAvgRelevanceWithGivenYearData);
         res.status(200).json({ok : true , data : pestleVsAvgRelevanceWithGivenYearData});
