@@ -210,7 +210,23 @@ app.get("/pestle-vs-avgrelevance-in-given-end-year/:endYear/" , async (req , res
 app.get('/avgIntensity-avgRelevance-forGivenTopic/:givenTopic' , async(req , res)=> {
   const {givenTopic} = req.params;
   try {
-      const pipeline = [{ $match: { topic: { $ne: '' } } }, { $match: { end_year: { $ne: '' } } }, { $match: { topic: givenTopic } }, { $group: { _id: '$end_year', averageRelevance: { $avg: '$relevance' }, averageIntensity: { $avg: '$intensity' } } }, { $project: { _id: 0, endYear: '$_id', averageRelevance: {$round : ['$averageRelevance',1]}, averageIntensity: {$round : ['$averageIntensity',1]} } }];
+      const pipeline = [
+           { $match: { topic: { $ne: '' } } },
+           { $match: { topic: givenTopic } },
+           { $facet: {
+               averageByEndYear: [
+                 { $match: { end_year: { $ne: '' } } },
+                 { $group: { _id: '$end_year', averageRelevance: { $avg: '$relevance' }, averageIntensity: { $avg: '$intensity' } } },
+                 { $project: { _id: 0, endYear: '$_id', averageRelevance: { $round: ['$averageRelevance', 1] }, averageIntensity: { $round: ['$averageIntensity', 1] } } }
+               ],
+               countByCountry: [
+                 { $group: { _id: '$country', count: { $sum: 1 } } },
+                 { $project: { _id: 0, country: '$_id', count: '$count' } },
+                 { $match: { country: { $ne: '' } } }
+               ]
+             }
+           }
+         ]
       const retrievedData = await all_data_collection.aggregate(pipeline).toArray();
       console.log(retrievedData);
       res.status(200).json({ok : true , data : retrievedData });
