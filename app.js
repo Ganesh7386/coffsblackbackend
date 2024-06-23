@@ -206,6 +206,21 @@ app.get("/pestle-vs-avgrelevance-in-given-end-year/:endYear/" , async (req , res
     }
 })
 
+
+app.get('/avgIntensity-avgRelevance-forGivenTopic/:givenTopic' , async(req , res)=> {
+  const {givenTopic} = req.params;
+  try {
+      const pipeline = [{ $match: { topic: { $ne: '' } } }, { $match: { end_year: { $ne: '' } } }, { $match: { topic: givenTopic } }, { $group: { _id: '$end_year', averageRelevance: { $avg: '$relevance' }, averageIntensity: { $avg: '$intensity' } } }, { $project: { _id: 0, endYear: '$_id', averageRelevance: {$round : ['$averageRelevance',1]}, averageIntensity: {$round : ['$averageIntensity',1]} } }];
+      const retrievedData = await all_data_collection.aggregate(pipeline).toArray();
+      console.log(retrievedData);
+      res.status(200).json({ok : true , data : retrievedData });
+  }
+  catch(e) {
+    console.log(e.message);
+    res.status(500).json({ok : false , data : e.message});
+  }
+})
+
 // app.get("/pestlesyear/:year/" , async (req , res)=> {
 //     const {year} = req.params;
 //     console.log(typeof(parseInt(year , 10)));
