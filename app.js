@@ -237,25 +237,114 @@ app.get('/avgIntensity-avgRelevance-forGivenTopic/:givenTopic' , async(req , res
   }
 })
 
-// app.get("/pestlesyear/:year/" , async (req , res)=> {
-//     const {year} = req.params;
-//     console.log(typeof(parseInt(year , 10)));
-//     console.log(year)
-//     // res.send("query sent");
-//     try {
-//         const pipeline = [{$match : {end_year : parseInt(year)}}];
-//         const pestleVsAvgRelevanceWithGivenYearData = await all_data_collection.aggregate(pipeline).toArray();
-//         console.log(pestleVsAvgRelevanceWithGivenYearData);
-//         res.status(200).json({ok : true , data : pestleVsAvgRelevanceWithGivenYearData});
-//     }
-//     catch(e) {
-//         console.log(e.message);
-//         res.status(500).json({ok : false ,data : "Internal query processing error occured"});
-//     }
-// })
+// added
+app.get('/avgWeightedLikelihood-in-each-country-for-given-sector/:givenSector' , async(req , res)=> {
+  const {givenSector} = req.params;
+  try {
+        const pipeline = [
+          { 
+              $match: { sector: 'Energy' } 
+          },
+          { 
+              $match: { country: { $ne: '' } } 
+          },
+          {
+              $addFields: {
+                  lowerCountry: { $toLower: "$country" }
+              }
+          },
+          { 
+              $facet: {
+                  weightedLikeLihoodRelatedData: [
+                      { 
+                          $group: {
+                              _id: "$lowerCountry",
+                              totalWeightedLikelihood: { $sum: { $multiply: ["$likelihood", "$relevance"] } },
+                              totalRelevance: { $sum: "$relevance" }
+                          }
+                      },
+                      { 
+                          $project: {
+                              _id: 0,
+                              country: "$_id",
+                              avgWeightedLikelihood: { $round: [{ $divide: ["$totalWeightedLikelihood", "$totalRelevance"] }, 1] }
+                          }
+                      }
+                  ],
+                  avgRelevanceIntensityRelatedData: [
+                      { 
+                          $group: {
+                              _id: "$lowerCountry",
+                              avgRelevance: { $avg: "$relevance" },
+                              avgIntensity: { $avg: "$intensity" }
+                          }
+                      },
+                      { 
+                          $project: {
+                              _id: 0,
+                              country: "$_id",
+                              averageRelevance: {$round :  ["$avgRelevance",1]},
+                              averageIntensity: {$round : ["$avgIntensity",1]}
+                          }
+                      }
+                  ]
+              }
+          }
+      ];
+  const gotavgWeightedLikelihoodForEachCountryData = await all_data_collection.aggregate(pipeline).toArray();
+  res.status(200).json({ok : true , data : gotavgWeightedLikelihoodForEachCountryData});
+  }
+  catch(e) {
+    res.status(500).json({ok : false , data : e.message});
+  }
+  
 
+})
 
+// added 
+app.get('/stats-according-to-given-region/:givenRegion' , async(req , res)=> {
+  const {givenRegion} = req.params;
+  try {
+    const pipeline = [
+      { $match: { region: 'Northern America' } },
+      {
+        $facet: {
+          avgRelevanceIntensityForEachTopicRelatedData: [
+      { $match : {topic : {$ne : ''}} },
+            { $group: { _id: '$topic', averageRelevance: { $avg: '$relevance' }, averageIntensity: { $avg: '$intensity' } } },
+            { $project: { _id: 0, topic: '$_id', averageIntensity: { $round: ['$averageIntensity', 1] }, averageRelevance: { $round: ['$averageRelevance', 1] } } },
+            { $sort: { topic: 1 } }
+          ],
+          avgRelevanceIntensityForEachSectorRelatedData: [
+            { $match: { sector: { $ne: '' } } },
+            { $group: { _id: '$sector', avgRelevance: { $avg: '$relevance' }, avgIntensity: { $avg: '$intensity' } } },
+            { $project: { _id: 0, sector: '$_id', averageRelevance: { $round: ['$avgRelevance', 1] }, averageIntensity: { $round: ['$avgIntensity', 1] } } },
+            { $sort: { sector: 1 } }
+          ],
+          noOfSourcesRelatedData: [
+            { $match: { source: { $ne: '' } } },
+            { $group: { _id: '$source', countOfSource: { $sum: 1 } } },
+            { $project: { _id: 0, source: '$_id', countOfEachSource: '$countOfSource' } },
+            { $sort: { countOfEachSource: -1 } }
+          ],
+          averageLikelihoodForEachTopiceRelatedData : [
+            {$group : {_id : '$topic', avgLikelihood : {$avg : '$likelihood'} } },
+            {$project : { _id : 0 , source : '$_id' , averageLikelihood : { $round : ['$avgLikelihood' , 1] } }},
+            {$sort : {averageLikelihood : -1 } }
+          ]
+        }
+      }
+    ]
+    
+    const gotRelatedStats = await all_data_collection.aggregate(pipeline).toArray();
 
+    res.status(200).json({ok : true , data : gotRelatedStats});
+  }
+  catch(e) {
+    console.log(e.message);
+    res.status(500).json({ok : false , data : e.message});
+  }
+})
 
 
 app.listen(port , ()=> {
