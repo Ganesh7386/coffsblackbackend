@@ -243,7 +243,7 @@ app.get('/avgWeightedLikelihood-in-each-country-for-given-sector/:givenSector' ,
   try {
         const pipeline = [
           { 
-              $match: { sector: 'Energy' } 
+              $match: { sector: givenSector } 
           },
           { 
               $match: { country: { $ne: '' } } 
