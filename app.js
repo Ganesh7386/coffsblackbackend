@@ -378,6 +378,7 @@ app.get("/stats-according-to-given-source/:givenSource" , async(req , res)=> {
         {$group : {_id : null , listOfCountries : {$addToSet : '$country'}}},
         {$project : {_id : 0 , listOfCountries : '$listOfCountries'} }
       ]
+      console.log(pipeline4);
 
       const allStatsData = await all_data_collection.aggregate([
         {$facet : {gettingListOfTitlesForEachCountryRelatedData : pipeline1 , gettingListOfTopicsForEachCountry : pipeline2 , gettingListOfPestleForGivenSourceRelatedData : pipeline3 , gettingListOfCountriesForGivenSourceRelatedData : pipeline4 }}
