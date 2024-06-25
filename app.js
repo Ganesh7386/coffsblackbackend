@@ -347,6 +347,52 @@ app.get('/stats-according-to-given-region/:givenRegion' , async(req , res)=> {
 })
 
 
+app.get("/stats-according-to-given-source/:givenSource" , async(req , res)=> {
+  const {givenSource} = req.params;
+  try {
+    const pipeline1 = [
+        { $match : { country : { $ne : '' }}},
+        {$match : {source :givenSource } },
+        { $group : {_id : '$country' , listOfTitles : {$push : '$title'}}},
+        { $project : {_id : 0 , country : '$_id' , listOfTitles : '$listOfTitles' , eachSize : {$size : '$listOfTitles' } }},
+        { $sort : {country : 1} }
+      ]
+      const pipeline2  = [
+        { $match : {country : {$ne : ''}} },
+        { $match : {source : givenSource}},
+        { $group : {_id : '$country' , listOfTopics : {$push : '$topic'} }},
+        {$project : {_id : 0 , country : '$_id' , listOfTopics : '$listOfTopics' , eachSize : {$size : '$listOfTopics'} } },
+        { $sort : {country : 1} }
+      ]
+
+      const pipeline3 = [
+        {$match : { pestle: {$ne : ''}}},
+        {$match : {source : givenSource }},
+        {$group : {_id : null , listOfPestles : {$addToSet : '$pestle'} } },
+        {$project : {_id : 0 , pestle : '$pestle' , listOfPestles : '$listOfPestles'}}
+      ]
+      const pipeline4 = [
+        {$match : {pestle : {$ne : ''}}},
+        {$match : {country : {$ne : ''}}},
+        {$match : {source : givenSource } },
+        {$group : {_id : null , listOfCountries : {$addToSet : '$country'}}},
+        {$project : {_id : 0 , listOfCountries : '$listOfCountries'} }
+      ]
+
+      const allStatsData = await all_data_collection.aggregate([
+        {$facet : {gettingListOfTitlesForEachCountryRelatedData : pipeline1 , gettingListOfTopicsForEachCountry : pipeline2 , gettingListOfPestleForGivenSourceRelatedData : pipeline3 , gettingListOfCountriesForGivenSourceRelatedData : pipeline4 }}
+      ]).toArray();
+
+      res.status(200).json({ok : true , data : allStatsData});
+
+  }
+  catch(e) {
+    console.log(e.message);
+    res.status(500).json({ok : false , data : e.message});
+  }
+  
+})
+
 app.listen(port , ()=> {
     console.log(`connected to http://localhost:5001`);
 })
