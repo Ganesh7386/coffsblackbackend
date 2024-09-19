@@ -48,6 +48,10 @@ app.get("/" , (req , res)=> {
     res.send("hello");
 })
 
+app.get("/addedroute" ,  (req , res)=> {
+  res.send("now added route");
+})
+
 
 app.get("/sales/" , async (req , res)=> {
     const foundObj = await all_data_collection.findOne({name : "bharath"});
