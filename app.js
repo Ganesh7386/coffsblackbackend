@@ -1,38 +1,15 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');
+const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require('cors');
+
 const {client , connectToCluster} = require('./mongodbconnection');
 
-const app = express();
-const server = http.createServer(app);
-app.use(cors({
-    origin: 'http://localhost:3000'
-}));
-app.use(bodyParser.json());
+
+app = express();
 app.use(express.json());
-
-const io = socketIo(server, {
-    cors: {
-        origin: "http://localhost:3000", // Allow frontend on port 3000
-        methods: ["GET", "POST"]
-    }
-});
-
-// Set up the socket connection
-io.on('connection', (socket) => {
-    console.log('New client connected');
-    console.log(socket.id);
-    socket.on("sendData" , (info)=> {
-      console.log(info);
-      socket.emit("receiveMsgAfterJoin" , "received data");
-    })
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-});
-
+app.use(cors());
+app.use(bodyParser.json());
+const port = process.env.port || 5001;
 
 const connectToMongoCluster = async ()=> {
 
@@ -65,15 +42,12 @@ const getCollectionsDatabase = async ()=> {
 
 getCollectionsDatabase();
 
-// Sample route to check if the server is running
+
 app.get("/" , (req , res)=> {
     console.log("home route");
     res.send("hello");
 })
 
-app.get("/getio" , (req , res)=> {
-  console.log("io");
-})
 
 app.get("/sales/" , async (req , res)=> {
     const foundObj = await all_data_collection.findOne({name : "bharath"});
@@ -420,9 +394,8 @@ app.get("/stats-according-to-given-source/:givenSource" , async(req , res)=> {
   
 })
 
+app.listen(port , ()=> {
+    console.log(`connected to http://localhost:5001`);
+})
 
-// Make sure the server is listening
-const PORT = 5001;
-server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+
