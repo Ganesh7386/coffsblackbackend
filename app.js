@@ -75,6 +75,12 @@ app.get("/" , (req , res)=> {
 app.get("/getio" , (req , res)=> {
   console.log("io");
 })
+=======
+app.get("/addedroute" ,  (req , res)=> {
+  res.send("now added route");
+})
+
+
 
 app.get("/sales/" , async (req , res)=> {
     const foundObj = await all_data_collection.findOne({name : "bharath"});
